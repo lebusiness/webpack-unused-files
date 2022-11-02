@@ -3,7 +3,9 @@ import * as webpack from 'webpack';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import StatoscopePlugin from '@statoscope/webpack-plugin';
 
+import moduleInitializer from './plugins/moduleInitializer'; 
 import ModuleLogger from './plugins/moduleLogger';
+import moduleFinisher from './plugins/moduleFinisher'; 
 
 const config: webpack.Configuration = {
     mode: 'production',
@@ -17,20 +19,33 @@ const config: webpack.Configuration = {
     },
     plugins: [
         new HtmlWebpackPlugin(),
+        new moduleInitializer(),
         new ModuleLogger(),
         new StatoscopePlugin({
             saveStatsTo: 'stats.json',
             saveOnlyStats: false,
             open: false,
         }),
+        new moduleFinisher()
     ],
     resolve: {
-        fallback: {
-            "buffer": require.resolve("buffer"),
-            "stream": false,
+        alias: {
+            'crypto-browserify': path.resolve(__dirname, '/src/crypto-fake.js'),
         },
+        fallback: {
+            'buffer': require.resolve('buffer'),
+            'stream': false,
+        },
+        extensions: ['.tsx', '.ts', '.js'],
     },
     module: {
+        rules: [
+            {
+                test: /\.tsx?$/,
+                use: 'ts-loader',
+                exclude: /node_modules/,
+            },
+        ],
     },
 };
 

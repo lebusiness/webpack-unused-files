@@ -1,20 +1,22 @@
 import { Compiler } from 'webpack';
-
+import { PathMap } from './types/PathMap';
+import { readFile, writeFile, checkIfVerifiable } from './helpers';
 class ModuleLogger {
     apply(compiler: Compiler) {
-        compiler.hooks.normalModuleFactory.tap(
-            'ModuleLogger',
-            (normalModuleFactory) => {
-                normalModuleFactory.hooks.module.tap('ModuleLogger', (_module, _createData, resolveData) => {
-                    // @ts-ignore
-                    console.log(_createData.resource);
+        compiler.hooks.normalModuleFactory.tap('ModuleLogger', normalModuleFactory => {
+            normalModuleFactory.hooks.module.tap('ModuleLogger', (_module, _createData, resolveData) => {
+                const path: string = _createData.resource;
+                const isVerifiable: boolean = checkIfVerifiable(path)
+                
+                if (isVerifiable) {
+                    let paths: PathMap = readFile('usedPath.json');
+                    paths[path] = true;
+                    writeFile('usedPath.json', paths)
+                }
 
-                    console.log(resolveData.context);
-
-                    return _module;
-                });
-            }
-        );
+                return _module;
+            });
+        });
     }
 }
 

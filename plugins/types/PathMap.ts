@@ -1,0 +1,1 @@
+export type PathMap = Record<string, boolean>;
